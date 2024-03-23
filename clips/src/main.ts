@@ -19,4 +19,5 @@ firebase.auth().onAuthStateChanged(() => {
     platformBrowserDynamic().bootstrapModule(AppModule)
     .catch(err => console.error(err));
   }
+  appInit = true //this prevents the app from running into the "AngularZone" error when navigating
 })
