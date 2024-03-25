@@ -7,11 +7,11 @@
           Passwords must be at least 8 characters long, must contain at least 1 uppercase letter, 1 lowercase letter, and 1 number
         </p>
         <p *ngIf="control.errors?.required" class="text-red-400">
-          Field is required
+          This field is required
         </p><!--We can use ' registerForm.get('name')?.errors ' in more complex forms / applications-->
         <p *ngIf="control.errors?.minlength" class="text-red-400">
-          The value inputted is {{ control.errors?.minlength.actuallength }} characters long.
-          It must be atleast {{ control.errors?.minlength.requiredlength }} cahracters long.
+          The value inputted is only {{ control.errors?.minlength.actualLength }} character(s) long.
+          It must be atleast {{ control.errors?.minlength.requiredLength }} characters long.
         </p>
         <p *ngIf="control.errors?.email" class="text-red-400">
           You must enter a valid email
