@@ -6,25 +6,30 @@
     <!-- Upload Dropbox -->
     <!-- Shared Directive applied, multiple events are captured and tailwindCSS classes are conditionally bound and applied to the element -->
     <!-- When the drop event is fired the storeFile() method is called -->
-    <div
-      *ngIf="!showThumbnailStep; else thumbnailStep"
+    <ng-container *ngIf="!showThumbnailStep; else thumbnailStep">
+      <div
       app-event-blocker
       (dragend)="isDragOver = false"
       (dragover)="isDragOver = true"
       (dragenter)="isDragOver = true"
       (dragleave)="isDragOver = false"
       (mouseleave)="isDragOver = false"
-      (drop)="storeFile($event)"
+      (drop)="uploadFile($event)"
       [ngClass]="{'bg-indigo-400 border-indigo-400 border-solid': isDragOver}"
       class="w-full px-10 py-40 rounded text-center cursor-pointer border border-dashed
         border-gray-400 transition duration-500 hover:text-white
         hover:bg-indigo-400 hover:border-indigo-400 hover:border-solid text-xl">
       <h5>Drop your file here (mp4 only!)</h5>
-    </div>
+      </div>
+    <input type="file" class="mt-4" (change)="uploadFile($event)">
+    </ng-container>
 
     <!-- Video Editor -->
     <ng-template #thumbnailStep>
-
+      <app-alert *ngIf="showAlert" [color]="alertColor">
+        <p>{{ alertMsg }}</p>
+        <p *ngIf="showUploadPercentage">{{ uploadPercentage | percent }}</p>
+      </app-alert>
       <!-- Form -->
       <form [formGroup]="videoUploadForm" (ngSubmit)="publishVideo()">
         <!-- Screenshots -->
@@ -48,6 +53,10 @@
         </div>
         <div class="mt-4 text-right">
           <button type="submit" [disabled]="videoUploadForm.invalid || inSubmission"
+          [ngClass]="{
+            'opacity-50': inSubmission,
+            'hover:bg-indigo-700': !inSubmission
+          }"
           class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none">
             Publish
           </button>
