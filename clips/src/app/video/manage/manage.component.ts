@@ -3,6 +3,7 @@ import { Router, ActivatedRoute, Params } from '@angular/router'
 import { ClipService } from 'src/app/services/clip.service';
 import IClip from 'src/app/models/clip.model';
 import { ModalService } from 'src/app/services/modal.service';
+import {  BehaviorSubject, Observable } from 'rxjs';
 
 @Component({
   selector: 'app-manage',
@@ -24,19 +25,23 @@ export class ManageComponent implements OnInit {
   videoOrder = '1';
   clips: IClip[] = []
   activeEditClip: IClip | null = null
+  sort$: BehaviorSubject<string> //note that the $ is appended to the end of variables to let other developers know it's an Observable, however, it's not required.
 
   constructor(
     private router: Router,
     private route: ActivatedRoute,
     private clipService: ClipService,
     private modal: ModalService
-  ) { }
+  ) {
+    this.sort$ = new BehaviorSubject(this.videoOrder)
+   }
 
     ngOnInit(): void {
       this.route.queryParams.subscribe((params: Params) => {
         this.videoOrder = params['sort'] === '2' ? params['sort'] : '1';
+        this.sort$.next(this.videoOrder)
       })
-      this.clipService.getUserClips().subscribe(docs => {
+      this.clipService.getUserClips(this.sort$).subscribe(docs => {
         this.clips = []
         docs.forEach(doc => {
           this.clips.push({
@@ -47,11 +52,13 @@ export class ManageComponent implements OnInit {
       })
     }
 
-    /*sort(event: Event) {// this sort function allows us to update the video gallery sort order through manipulation the URL with query parameters
-      const { value } = (event.target as HTMLSelectElement)
+    /*
+    sort(event: Event) {  // this sort function allows us to update the video gallery sort order through manipulation the URL with query parameters
+    const { value } = (event.target as HTMLSelectElement)
 
-      this.router.navigateByUrl(`/manage?sort=${value}`)
-    }*/
+    this.router.navigateByUrl(`/manage?sort=${value}`)
+    }
+    */
 
     sort(event: Event) {
       const { value } = (event.target as HTMLSelectElement)
@@ -70,5 +77,26 @@ export class ManageComponent implements OnInit {
       this.activeEditClip = clip
 
       this.modal.toggleModal('editClip')
+    }
+
+    update($event: IClip){ //this function accepts the emitted event from the edit.component and accesses the values in it. It then loops through all of the active clips in the manage compoenent and updates their properties as needed
+      this.clips.forEach((element, index) => {
+        if(element.docID == $event.docID) {
+          this.clips[index].videoTitle = $event.videoTitle
+        }
+      })
+    }
+
+    deleteClip($event: Event, clip: IClip){
+      $event.preventDefault()
+
+      this.clipService.deleteClip(clip)
+
+      this.clips.forEach((element, index) => {
+        if(element.docID == clip.docID) {
+          this.clips.splice(index, 1)
+        }
+      })
+
     }
   }
