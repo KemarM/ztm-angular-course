@@ -29,6 +29,7 @@ export class UploadComponent implements OnDestroy {
   uploadTask?: AngularFireUploadTask
 
   screenshots: string[] = []
+  selectedScreenshot = ''
 
   videoTitle = new FormControl('', [
     Validators.required,
@@ -73,6 +74,8 @@ export class UploadComponent implements OnDestroy {
     }
 
     this.screenshots = await this.ffmpegService.getScreenshots(this.file)
+
+    this.selectedScreenshot = this.screenshots[0]
 
     this.videoTitle.setValue( // used to automatically update the video file field with the file name
       this.file.name.replace(/\.[^/.]+$/, '')//this removes the file extention from the name, replacing it with nothing ' '
