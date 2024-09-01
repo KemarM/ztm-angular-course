@@ -3,7 +3,15 @@
   <div class="rounded relative flex flex-col">
     <div class="font-bold mb-6">Upload Video</div>
 
-    <!-- Upload Dropbox -->
+    <ng-container>
+      <span *ngIf="!ffmpegService.isReady; else uploadEditorCtr"
+        class="material-symbols-outlined text-center text-6xl p-8 animate-bounce">
+        cloud_upload
+      </span>
+    </ng-container>
+
+    <ng-template #uploadEditorCtr>
+        <!-- Upload Dropbox -->
     <!-- Shared Directive applied, multiple events are captured and tailwindCSS classes are conditionally bound and applied to the element -->
     <!-- When the drop event is fired the storeFile() method is called -->
     <ng-container *ngIf="!showThumbnailStep; else thumbnailStep">
@@ -62,6 +70,7 @@
           </button>
         </div>
       </form>
+    </ng-template>
     </ng-template>
   </div>
 </section>
