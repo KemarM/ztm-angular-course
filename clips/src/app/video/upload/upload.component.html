@@ -4,10 +4,14 @@
     <div class="font-bold mb-6">Upload Video</div>
 
     <ng-container>
-      <span *ngIf="!ffmpegService.isReady; else uploadEditorCtr"
-        class="material-symbols-outlined text-center text-6xl p-8 animate-bounce">
-        cloud_upload
-      </span>
+      <div *ngIf="!ffmpegService.isReady; else uploadEditorCtr" class="text-center">
+        <span class="material-symbols-outlined text-6xl p-8 animate-bounce">
+          cloud_upload
+        </span>
+        <p class="text-2xl p-4">
+          Please wait one moment while our video upload service is loading...
+        </p>
+      </div>
     </ng-container>
 
     <ng-template #uploadEditorCtr>

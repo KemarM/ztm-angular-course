@@ -54,7 +54,7 @@ export class UploadComponent implements OnDestroy {
   // ^ we're not using the OnInit function or interface, so we're going to use the OnDestroy. This is part of Angular's life cycle functions, we want to monitor
   // when a component gets destroyed when a user navigates to another page in the application etc.
 
-  uploadFile($event: Event){
+  async uploadFile($event: Event){
     this.isDragOver = false
 
     this.file = ($event as DragEvent).dataTransfer ?
@@ -65,6 +65,8 @@ export class UploadComponent implements OnDestroy {
     if(!this.file || this.file.type !== 'video/mp4'){
       return
     }
+
+    await this.ffmpegService.getScreenshots(this.file)
 
     this.videoTitle.setValue( // used to automatically update the video file field with the file name
       this.file.name.replace(/\.[^/.]+$/, '')//this removes the file extention from the name, replacing it with nothing ' '
