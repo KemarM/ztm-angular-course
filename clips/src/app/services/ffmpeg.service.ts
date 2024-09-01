@@ -32,7 +32,7 @@ export class FfmpegService {
     //... in order to tap into and convert video into binary data
     this.ffmpeg.FS('writeFile', file.name, data)
 
-    const seconds = [1,2,3]
+    const seconds = [1,3,6]
     const commands: string[] = []
 
     seconds.forEach(second =>{
