@@ -28,6 +28,8 @@ export class UploadComponent implements OnDestroy {
   user: firebase.User | null = null
   uploadTask?: AngularFireUploadTask
 
+  screenshots: string[] = []
+
   videoTitle = new FormControl('', [
     Validators.required,
     Validators.minLength(3)
@@ -66,7 +68,7 @@ export class UploadComponent implements OnDestroy {
       return
     }
 
-    await this.ffmpegService.getScreenshots(this.file)
+    this.screenshots = await this.ffmpegService.getScreenshots(this.file)
 
     this.videoTitle.setValue( // used to automatically update the video file field with the file name
       this.file.name.replace(/\.[^/.]+$/, '')//this removes the file extention from the name, replacing it with nothing ' '
