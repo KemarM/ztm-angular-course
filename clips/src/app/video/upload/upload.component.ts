@@ -8,6 +8,7 @@ import { last,switchMap, timestamp } from 'rxjs';
 import { ClipService } from 'src/app/services/clip.service';
 import { Router } from '@angular/router';
 import { FfmpegService } from 'src/app/services/ffmpeg.service';
+import { combineLatest } from 'rxjs';
 
 @Component({
   selector: 'app-upload',
@@ -104,12 +105,25 @@ export class UploadComponent implements OnDestroy {
 
     this.screenshotTask = this.store.upload(screenshotPath, screenshotBlob)
 
-    this.uploadTask.percentageChanges().subscribe(currentProgress => {
-      this.uploadPercentage = currentProgress as number / 100
+    // The blow now merges the progress of two observables into one observable then we are calculating the total progress and displaying it to the user
+    // It's also checking to ensure both processes are running
+    combineLatest([
+      this.uploadTask.percentageChanges(),
+      this.screenshotTask.percentageChanges()
+    ]).subscribe((currentProgress) => {
+      const [clipProgress, screenshotProgress] = currentProgress
+
+      if(!clipProgress || !screenshotProgress){
+        return
+      }
+
+      const totalProgress = clipProgress + screenshotProgress
+
+      this.uploadPercentage = totalProgress as number / 200
     })
 
     /*
-    Below is an alternative method of monitoring upload prgress, the snapshotchanges() function returns an observable to subscribe to,
+    Below is an alternative method of monitoring upload progress, the snapshotchanges() function returns an observable to subscribe to,
     each of those objects has a status value that says 'running' or 'success', we only care about the last object with the 'success' message,
     so we can pipe the returned objet to only show the last one using pipe().last() from the rxjs import
     */
