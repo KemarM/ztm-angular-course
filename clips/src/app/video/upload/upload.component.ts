@@ -4,11 +4,11 @@ import { AngularFireStorage, AngularFireUploadTask } from '@angular/fire/compat/
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import firebase from 'firebase/compat/app'
 import { v4 as uuid } from 'uuid';
-import { last,switchMap, timestamp } from 'rxjs';
+import { switchMap, timestamp } from 'rxjs';
 import { ClipService } from 'src/app/services/clip.service';
 import { Router } from '@angular/router';
 import { FfmpegService } from 'src/app/services/ffmpeg.service';
-import { combineLatest } from 'rxjs';
+import { combineLatest, forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-upload',
@@ -105,6 +105,8 @@ export class UploadComponent implements OnDestroy {
 
     this.screenshotTask = this.store.upload(screenshotPath, screenshotBlob)
 
+    const screenshotRef = this.store.ref(screenshotPath)
+
     // The blow now merges the progress of two observables into one observable then we are calculating the total progress and displaying it to the user
     // It's also checking to ensure both processes are running
     combineLatest([
@@ -126,18 +128,29 @@ export class UploadComponent implements OnDestroy {
     Below is an alternative method of monitoring upload progress, the snapshotchanges() function returns an observable to subscribe to,
     each of those objects has a status value that says 'running' or 'success', we only care about the last object with the 'success' message,
     so we can pipe the returned objet to only show the last one using pipe().last() from the rxjs import
+
+    Update:
+    After intriducing the forkJoin operator to merge two observables into one, we no longer needed the last() operator
     */
-    this.uploadTask.snapshotChanges().pipe(
-      last(),
-      switchMap(() => clipRef.getDownloadURL())
+    forkJoin([
+      this.uploadTask.snapshotChanges(),
+      this.screenshotTask.snapshotChanges()
+    ]).pipe(
+      switchMap(() => forkJoin([
+        clipRef.getDownloadURL(),
+        screenshotRef.getDownloadURL()
+      ]))
     ).subscribe({
-      next: async (url) => {
+      next: async (urls) => {
+        const [clipURL, screenshotURL] = urls
+
         const clip = {
           uid: this.user?.uid as string,
           displayName: this.user?.displayName as string,
           videoTitle: this.videoTitle.value,
           clipFileName: `${clipFileName}.mp4`,
-          url,
+          url: clipURL,
+          screenshotURL,
           timestamp: firebase.firestore.FieldValue.serverTimestamp()
         }
 
