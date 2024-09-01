@@ -30,6 +30,7 @@ export class UploadComponent implements OnDestroy {
 
   screenshots: string[] = []
   selectedScreenshot = ''
+  screenshotTask?: AngularFireUploadTask
 
   videoTitle = new FormControl('', [
     Validators.required,
@@ -83,8 +84,9 @@ export class UploadComponent implements OnDestroy {
     this.showThumbnailStep = true
   }
 
-  publishVideo() {
+  async publishVideo() {
     this.videoUploadForm.disable()//disables the entire form upon clicking the publish button
+
     this.showAlert = true
     this.alertMsg = 'Please wait! We\'re uploading your new video...'
     this.alertColor = 'blue'
@@ -94,8 +96,13 @@ export class UploadComponent implements OnDestroy {
     const clipFileName = uuid()
     const clipPath = `clips/${clipFileName}.mp4`
 
+    const screenshotBlob = await this.ffmpegService.blobFromURL(this.selectedScreenshot)
+    const screenshotPath = `screenshots/${clipFileName}.png`
+
     this.uploadTask = this.store.upload(clipPath, this.file)
     const clipRef = this.store.ref(clipPath)
+
+    this.screenshotTask = this.store.upload(screenshotPath, screenshotBlob)
 
     this.uploadTask.percentageChanges().subscribe(currentProgress => {
       this.uploadPercentage = currentProgress as number / 100
