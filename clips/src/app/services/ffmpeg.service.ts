@@ -5,6 +5,7 @@ import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
   providedIn: 'root'
 })
 export class FfmpegService {
+  public isRunning = false
   public isReady = false
   private ffmpeg
 
@@ -23,6 +24,8 @@ export class FfmpegService {
   }
 
   async getScreenshots(file: File){
+    this.isRunning = true
+
     const data = await fetchFile(file)
 
     //This function is the File System function which will enable us to manage and interact with the local file system
@@ -63,6 +66,8 @@ export class FfmpegService {
 
       screenshots.push(screenshotURL)
     })
+
+    this.isRunning = false
 
     return screenshots
   }

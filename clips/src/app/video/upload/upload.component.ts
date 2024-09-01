@@ -57,6 +57,10 @@ export class UploadComponent implements OnDestroy {
   // when a component gets destroyed when a user navigates to another page in the application etc.
 
   async uploadFile($event: Event){
+    if(this.ffmpegService.isRunning) { //if a file is being uploaded, disallow uploading another video syumultaneously till it's done.
+      return
+    }
+
     this.isDragOver = false
 
     this.file = ($event as DragEvent).dataTransfer ?
