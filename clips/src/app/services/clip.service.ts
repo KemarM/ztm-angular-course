@@ -5,17 +5,22 @@ import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { switchMap, map } from 'rxjs/operators';
 import { of, BehaviorSubject, combineLatest } from 'rxjs';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
+import { Resolve, ActivatedRouteSnapshot, RouterStateSnapshot, Router } from '@angular/router'
+import { snapshot } from 'node:test';
 
 @Injectable({
   providedIn: 'root'
 })
-export class ClipService {
+export class ClipService implements Resolve<IClip | null> {
   public clipsCollection: AngularFirestoreCollection<IClip>
+  pageClips: IClip[] = []
+  pendingRequests = false
 
   constructor(
     private db: AngularFirestore,
     private auth: AngularFireAuth,
-    private storage: AngularFireStorage
+    private storage: AngularFireStorage,
+    private route: Router
   ) {
     this.clipsCollection = db.collection('clips')
   }
@@ -59,5 +64,47 @@ export class ClipService {
     await screenshotRef.delete()
 
     await this.clipsCollection.doc(clip.docID).delete()
+  }
+
+  async getClips(){
+    if(this.pendingRequests){
+      return
+    }
+
+    this.pendingRequests = true
+    let query = this.clipsCollection.ref.orderBy('timestamp', 'desc').limit(6)
+
+    const { length } = this.pageClips
+    if(length){
+      const lastDocID = this.pageClips[length - 1].docID
+      const lastDoc = await this.clipsCollection.doc(lastDocID).get().toPromise()
+
+      query = query.startAfter(lastDoc)
+    }
+
+    const snapshot = await query.get()
+    snapshot.forEach(doc  => {
+      this.pageClips.push({
+        docID: doc.id,
+        ...doc.data()
+      })
+    })
+
+    this.pendingRequests = false
+  }
+
+  resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot){
+    return this.clipsCollection.doc(route.params.id).get().pipe(
+      map(snapshot => {
+        const data = snapshot.data()
+
+        if(!data) {
+          this.route.navigate(['/'])
+          return null
+        }
+
+        return data
+      })
+    )
   }
 }
